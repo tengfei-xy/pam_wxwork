@@ -1,0 +1,2 @@
+extern int url_encode(const char *str, const int strsz, char *result, const int resultsz);
+extern int url_decode(const char *str, const int strsz, char *result, const int resultsz, const char **last_pos);
