@@ -34,7 +34,6 @@ extern int displayQRCode(pam_handle_t *pamh,const char *url)
         pam_syslog(pamh, LOG_ERR, "打开libqrencode库失败");
         return -1;
     }
-        pam_syslog(pamh, LOG_INFO, "到这里");
 
     // QRcode Struct Reference
     // https://fukuchi.org/works/qrencode/manual/structQRcode.html#ae6f826314cfb99f4926c4c5734997c35
@@ -54,8 +53,8 @@ extern int displayQRCode(pam_handle_t *pamh,const char *url)
         return -1;
     }
 
-  int ttyfd = open("/dev/console",(O_RDWR), 0644);  
-     dup2(ttyfd,STDOUT_FILENO);  
+  // int ttyfd = open("/dev/console",(O_RDWR), 0644);  
+  //    dup2(ttyfd,STDOUT_FILENO);  
 
     // 二维码版本
     int qrcode_version=5;
@@ -64,6 +63,13 @@ extern int displayQRCode(pam_handle_t *pamh,const char *url)
     QRcode *qrcode = QRcode_encodeString8bit(url, qrcode_version, qrcdoe_level);
 
     const char *ptr = (char *)qrcode->data;
+
+       for (int i = 0; i < 2; ++i) {
+      printf(ANSI_BLACKONGREY);
+      for (int x = 0; x < qrcode->width + 4; ++x) printf("  ");
+      puts(ANSI_RESET);
+    }
+
     for (int y = 0; y < qrcode->width; ++y) {
       printf(ANSI_BLACKONGREY"    ");
       int isBlack = 0;

@@ -10,7 +10,6 @@
 #include "wxwork.h"
 #include "strings.h"
 #include "network.h"
-
 size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream)
 {
     return (size_t)fwrite(ptr, size, nmemb, stream);
@@ -18,16 +17,20 @@ size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream)
 
 extern char *get_wxwork_key(pam_handle_t *pamh, char *url)
 {
-
     CURL *curl;
     CURLcode res;
     FILE *curl_tmp_file = fopen("/tmp/pam_wxwork", "rw+");
+    if (curl_tmp_file == NULL){
+        pam_syslog(pamh, LOG_ERR, "open /tmp/pam_wxwork failed");
+        return NULL;
+    }
+
     struct curl_slist *http_header = NULL;
 
     curl = curl_easy_init();
     if (!curl)
     {
-        pam_syslog(pamh, LOG_ERR,"%s", "curl init failed");
+        pam_syslog(pamh, LOG_ERR, "curl init failed");
         return NULL;
     }
     char * errbuf = (char * )malloc(10200);
@@ -84,7 +87,7 @@ extern char *get_wxwork_key(pam_handle_t *pamh, char *url)
     // pam_syslog(pamh, LOG_INFO, "文件长度:%lld",buflen);
     fseek(curl_tmp_file, 0, SEEK_SET);
     fread(body, buflen, 1, curl_tmp_file);
-    // pam_syslog(pamh, LOG_INFO, "文件内容:%s",body);
+    pam_syslog(pamh, LOG_INFO, "文件内容:%s",body);
 
     char *start = body;
     char *label_img_url = "open.work.weixin.qq.com/wwopen/sso/qrImg?key=";
@@ -93,16 +96,21 @@ extern char *get_wxwork_key(pam_handle_t *pamh, char *url)
         return NULL;
     int e = strindex_x(body, "\"", s);
 
-    char *key = (char *)malloc(e - s);
+    char *key = (char *)calloc(e - s,sizeof(char));
 
     for (int i = 0; i < e - s; i++)
         key[i] = body[s + i];
-    key[e - s] = '\0';
-
+  
+    if (strstr(body,"参数错误")!=NULL){
+        pam_syslog(pamh, LOG_ERR, "invaild url:%s", url);
+        key ==NULL;
+        free(key);
+    }
     // 释放
     free(body);
     curl_easy_cleanup(curl);
     fclose(curl_tmp_file);
+
     return key;
 }
 
@@ -206,18 +214,18 @@ extern char *wait_auth_wxwork_qrcode(char *key, char *login_url, char *appid)
             value = json_extract_key(body, "\"auth_code\"");
             if (value == NULL)
             {
-                printf("查找值失败\n");
+                printf("find auth_code key failed!\n");
                 break;
             }
             break;
         }
-        else if (strindex_x(body, "QRCODE_SCAN_ING", 0) != -1)
-        {
-            printf("正在验证，请稍等\n");
-        }
+        // else if (strindex_x(body, "QRCODE_SCAN_ING", 0) != -1)
+        // {
+        //     printf("wait for auth\n");
+        // }
         else if (strindex_x(body, "QRCODE_SCAN_ERR", 0) != -1)
         {
-            printf("回调失败,重新发起请求\n");
+            printf("request error!\n");
         }
 
         // 释放
@@ -254,7 +262,6 @@ char *create_redirect_url(char *login_url, char *auth_code, char *appid)
 
 int req_auth_server(pam_handle_t *pamh, char *url)
 {
-    pam_info(pamh, "重定向访问验证服务器:%s", url);
     int ret = 1;
     CURL *curl;
     CURLcode res;
@@ -307,23 +314,25 @@ int req_auth_server(pam_handle_t *pamh, char *url)
     char *body = (char *)malloc(buflen);
     fseek(curl_tmp_file, 0, SEEK_SET);
     fread(body, buflen, 1, curl_tmp_file);
-    // printf("文件内容:%s\n", body);
 
-    if (body == "success")
-    {
+    printf("auth server return: %s\n",body);
+    printf("auth successful!!!\n");
+    ret = 0;
 
-        pam_info(pamh, "%s", "验证通过！！");
-        ret = 0;
-    }
-    else
-    {
-        pam_info(pamh, "%s", "验证失败！！");
-        ret = 1;
-    }
+    // if (body == "success\0")
+    // {
+    //     pam_info(pamh, "%s", "auth successful!!!");
+    //     ret = 0;
+    // }
+    // else
+    // {
+    //     pam_info(pamh, "%s", "auth failed!");
+    //     ret = 1;
+    // }
 
     // 释放
     free(body);
     curl_easy_cleanup(curl);
     fclose(curl_tmp_file);
-    return 0;
+    return ret;
 }

@@ -1,18 +1,47 @@
-# pam-wxwork
+# PAM-WXwork v0.1
+
+
+
+## 模块使用方法
+
+临时关闭selinux
+
+```
+setenforce 0
+```
 
 安装依赖
 
 ```bash
-yum install -y gcc qrencode-devel curl-devel pam-devel
+sudo yum install -y gcc qrencode-devel curl-devel pam-devel
 ```
 
-编译
+编译并复制
 
 ```
-gcc -fPIC -c pam_wxwork.c -o pam_wxwork.o
-gcc -shared -o pam_wxwork.so pam_wxwork.o -lpam
-cp pam_wxwork.so /usr/lib64/security
+./run.sh
 ```
+
+复制模块所需的配置文件到指定目录，注：值的获取可以参考下方企业微信二维码验证过程
+
+```
+cp pam_wxwork.conf /usr/local/pam_wxork/pam_wxwork.conf
+```
+
+编辑/etc/pam.d/login，添加如下内容
+
+```
+account    required     pam_wxwork.so file=/usr/local/pam_wxork/pam_wxwork.conf
+```
+
+
+
+## 使用说明
+
+1. 目前仅支持从控制台来扫描登录，咱不支持从ssh/sftp
+2. 一旦将pam_wxwork.so复制到模块目录，将实时生效
+3. 模块的日志参考于/var/log/secure
+4. 需要关闭SELINUX
 
 
 
@@ -27,7 +56,7 @@ cp pam_wxwork.so /usr/lib64/security
 # redirect_uri: 企业微信的应用后台管理界面的企业微信授权登录中设置
 #               仅手动设置授权回调域
 # state: 用户自定义
-https://open.work.weixin.qq.com/wwopen/sso/qrConnect?appid=ww49cfd580625083c9&agentid=1000014&redirect_uri=http://zhiweiadserver.xunyang.site:16823/wxauth&state=666
+https://open.work.weixin.qq.com/wwopen/sso/qrConnect?appid=abcd&agentid=666&redirect_uri=http://xxx.simple.com:1234/wxauth&state=666
 ```
 
 
@@ -46,7 +75,7 @@ https://open.work.weixin.qq.com/wwopen/sso/qrConnect?appid=ww49cfd580625083c9&ag
 # redirect_uri: 重定向的链接，但不包括参数
 # appid: 企业微信的应用ID
 # _: 时间戳
-https://open.work.weixin.qq.com/wwopen/sso/l/qrConnect?callback=jsonpCallback&key=76966ecba2d8f88d&redirect_uri=http%3A%2F%2Fzhiweiadserver.xunyang.site%3A16823%2Fwxauth&appid=ww49cfd580625083c9&_=1660187708226
+https://open.work.weixin.qq.com/wwopen/sso/l/qrConnect?callback=jsonpCallback&key=76966ecba2d8f88d&redirect_uri=http%3A%2F%2Fzhiweiadserver.xunyang.site%3A16823%2Fwxauth&appid=abcd&_=1660187708226
 ```
 
 
@@ -64,6 +93,6 @@ jsonpCallback({"status":"QRCODE_SCAN_SUCC","auth_code":"-v70iodQUS3MqxP-dOejzob4
 # code: 上文中提取
 # state: 用户自定义的子弹
 # appid: 企业微信的应用ID
-http://zhiweiadserver.xunyang.site:16823/wxauth?code=_RCW8EiyhEBK7OyXismdLbRBJp-Stsrmzn6HCHFLOV8&state=666&appid=ww49cfd580625083c9
+http://zhiweiadserver.xunyang.site:16823/wxauth?code=_RCW8EiyhEBK7OyXismdLbRBJp-Stsrmzn6HCHFLOV8&state=666&appid=abcd
 ```
 
