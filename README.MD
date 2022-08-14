@@ -1,12 +1,20 @@
-# PAM-WXwork v0.1
+# PAM-WXWork v0.1
+
+一种用于Linux验证登录的pam模块，通过企业微信的二维码验证登录。
 
 
 
-## 模块使用方法
+## 运行方法
+
+clone
+
+```bash
+git clone git@github.com:tengfei-xy/pam_wxwork.git
+```
 
 临时关闭selinux
 
-```
+```bash
 setenforce 0
 ```
 
@@ -18,13 +26,13 @@ sudo yum install -y gcc qrencode-devel curl-devel pam-devel
 
 编译并复制
 
-```
-./run.sh
+```bash
+ cd pam_wxwork && ./build.sh
 ```
 
 复制模块所需的配置文件到指定目录，注：值的获取可以参考下方企业微信二维码验证过程
 
-```
+```bash
 cp pam_wxwork.conf /usr/local/pam_wxork/pam_wxwork.conf
 ```
 
