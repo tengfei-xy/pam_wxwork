@@ -46,7 +46,7 @@ account    required     pam_wxwork.so file=/usr/local/pam_wxork/pam_wxwork.conf
 
 ## 使用说明
 
-1. 目前仅支持从控制台来扫描登录，咱不支持从ssh/sftp
+1. 目前仅支持从控制台来（/etc/pam.d/login）扫描登录，暂不支持从ssh/sftp（/etc/pam.d/sshd）验证
 2. 一旦将pam_wxwork.so复制到模块目录，将实时生效
 3. 模块的日志参考于/var/log/secure
 4. 需要关闭SELINUX
@@ -83,7 +83,7 @@ https://open.work.weixin.qq.com/wwopen/sso/qrConnect?appid=abcd&agentid=666&redi
 # redirect_uri: 重定向的链接，但不包括参数
 # appid: 企业微信的应用ID
 # _: 时间戳
-https://open.work.weixin.qq.com/wwopen/sso/l/qrConnect?callback=jsonpCallback&key=76966ecba2d8f88d&redirect_uri=http%3A%2F%2Fzhiweiadserver.xunyang.site%3A16823%2Fwxauth&appid=abcd&_=1660187708226
+https://open.work.weixin.qq.com/wwopen/sso/l/qrConnect?callback=jsonpCallback&key=76966ecba2d8f88d&redirect_uri=http%3A%2F%2Fxxx.simple.com%3A16823%2Fwxauth&appid=abcd&_=1660187708226
 ```
 
 
@@ -101,6 +101,6 @@ jsonpCallback({"status":"QRCODE_SCAN_SUCC","auth_code":"-v70iodQUS3MqxP-dOejzob4
 # code: 上文中提取
 # state: 用户自定义的子弹
 # appid: 企业微信的应用ID
-http://zhiweiadserver.xunyang.site:16823/wxauth?code=_RCW8EiyhEBK7OyXismdLbRBJp-Stsrmzn6HCHFLOV8&state=666&appid=abcd
+http://xxx.simple.com:16823/wxauth?code=_RCW8EiyhEBK7OyXismdLbRBJp-Stsrmzn6HCHFLOV8&state=666&appid=abcd
 ```
 
