@@ -1,4 +1,4 @@
-# PAM-WXWork v0.1
+# PAM-WXWork v0.2
 
 一种用于Linux验证登录的pam模块，通过企业微信的二维码验证登录。
 
@@ -12,7 +12,7 @@ clone
 git clone git@github.com:tengfei-xy/pam_wxwork.git
 ```
 
-临时关闭selinux
+临时关闭selinux（或永久）
 
 ```bash
 setenforce 0
@@ -30,10 +30,14 @@ sudo yum install -y gcc qrencode-devel curl-devel pam-devel
  cd pam_wxwork && ./build.sh
 ```
 
-复制模块所需的配置文件到指定目录，注：值的获取可以参考下方企业微信二维码验证过程
+编辑并复制模块所需的配置文件到指定目录，
+
+注：pam_wxwork.conf的配置方法可以参考下方企业微信二维码验证过程
 
 ```bash
-cp pam_wxwork.conf /usr/local/pam_wxork/pam_wxwork.conf
+cp pam_wxwork.conf pam_wxwork.conf.save
+vi pam_wxwork.conf.save
+cp pam_wxwork.conf.save /usr/local/pam_wxork/pam_wxwork.conf
 ```
 
 编辑/etc/pam.d/login，添加如下内容
@@ -50,6 +54,7 @@ account    required     pam_wxwork.so file=/usr/local/pam_wxork/pam_wxwork.conf
 2. 一旦将pam_wxwork.so复制到模块目录，将实时生效
 3. 模块的日志参考于/var/log/secure
 4. 需要关闭SELINUX
+5. 验证服务器返回字符串success即可
 
 
 
@@ -71,13 +76,13 @@ https://open.work.weixin.qq.com/wwopen/sso/qrConnect?appid=abcd&agentid=666&redi
 
 二维码指向的链接保存于登录链接的img标签下，如下方地址所示
 ```
-//open.work.weixin.qq.com/wwopen/sso/qrImg?key=0cf6bfe24b3be4a9
+https://open.work.weixin.qq.com/wwopen/sso/confirm2?k=0cf6bfe24b3be4a9
 ```
 
 
 
 在浏览器中打开登录链接后，其实每间隔20秒发送下方地址
-```bash
+```shell
 # 参数获取说明
 # key: 从二维码指向的链接中获取
 # redirect_uri: 重定向的链接，但不包括参数
@@ -89,14 +94,14 @@ https://open.work.weixin.qq.com/wwopen/sso/l/qrConnect?callback=jsonpCallback&ke
 
 
 直到手机扫描二维码后，上方地址将获取到json
-```
+```json
 jsonpCallback({"status":"QRCODE_SCAN_SUCC","auth_code":"-v70iodQUS3MqxP-dOejzob4PW3CGOuxW9yiSdsvmA8"})
 ```
 
 
 
 获取到auth_code字段后，即可生成新的重定向链接，如下方地址所示
-```bash
+```shell
 # 参数获取说明
 # code: 上文中提取
 # state: 用户自定义的子弹
