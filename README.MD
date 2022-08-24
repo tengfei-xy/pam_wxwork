@@ -37,7 +37,7 @@ sudo yum install -y gcc qrencode-devel curl-devel pam-devel
 ```bash
 cp pam_wxwork.conf pam_wxwork.conf.save
 vi pam_wxwork.conf.save
-cp pam_wxwork.conf.save /usr/local/pam_wxork/pam_wxwork.conf
+cp pam_wxwork.conf.save /usr/local/pam_wxwork/pam_wxwork.conf
 ```
 
 编辑/etc/pam.d/login，添加如下内容
@@ -52,12 +52,12 @@ account    required     pam_wxwork.so file=/usr/local/pam_wxork/pam_wxwork.conf 
 
 ## 使用说明
 
-1. 目前仅支持从控制台来（/etc/pam.d/login）和咱不支持从sshd（/etc/pam.d/sshd）通过命令行扫描二维码方式（除非利用web进行中转web）
+1. 目前仅支持从控制台来（/etc/pam.d/login）和暂不支持从sshd（/etc/pam.d/sshd）通过命令行扫描二维码方式进行验证（除非利用web进行中转web）
 2. 一旦将pam_wxwork.so复制到模块目录，将实时生效
 3. 模块的日志参考于/var/log/secure
 4. 需要关闭SELINUX
 5. 验证服务器返回字符串success即可
-6. 提供的长链接转短链接的api地址如下，当前为短链接失效为永久有效。
+6. 提供的长链接转短链接的api地址如下，当前为短链接时效为永久有效。
 
    ```
    short_url_api="https://link.xunyang.site/pam?get="
@@ -124,7 +124,7 @@ http://xxx.simple.com:16823/wxauth?code=_RCW8EiyhEBK7OyXismdLbRBJp-Stsrmzn6HCHFL
 
 2022-08-24 v0.3
 
-> 1. 查看二维码和验证二维码步骤分开（想测试从sshd中验证，但失败）
+> 1. 查看二维码和验证二维码步骤分开（想测试从sshd中扫描二维码，但失败）
 > 2. 支持更小的二维码
 
 2022-08-17 v0.2 
