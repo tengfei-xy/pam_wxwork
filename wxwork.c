@@ -9,10 +9,8 @@
 #include <syslog.h>
 #include "wxwork.h"
 #include "strings.h"
-size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream)
-{
-    return (size_t)fwrite(ptr, size, nmemb, stream);
-}
+#include "file.h"
+
 
 extern char *get_wxwork_key(pam_handle_t *pamh, char *url)
 {
@@ -22,7 +20,7 @@ extern char *get_wxwork_key(pam_handle_t *pamh, char *url)
     FILE *curl_tmp_file = fopen("/tmp/pam_wxwork", "rw+");
     if (curl_tmp_file == NULL)
     {
-        pam_syslog(pamh, LOG_ERR, "open /tmp/pam_wxwork failed");
+        pam_syslog(pamh, LOG_ERR, "failed to open file");
         return NULL;
     }
 
@@ -56,28 +54,28 @@ extern char *get_wxwork_key(pam_handle_t *pamh, char *url)
     case CURLE_OK:
         break;
     case CURLE_UNSUPPORTED_PROTOCOL:
-        pam_syslog(pamh, LOG_ERR, "请求url:%s 错误:%s", url, "不支持的协议,由URL的头部指定");
+        pam_syslog(pamh, LOG_ERR, "url: %s,error: :%s", url, "An unsupported protocol specified by the header of the URL");
         return NULL;
 
     case CURLE_COULDNT_CONNECT:
-        pam_syslog(pamh, LOG_ERR, "请求url:%s 错误:%s", url, "不能连接到远程主机或者代理");
+        pam_syslog(pamh, LOG_ERR, "url: %s,error: :%s", url, "Unable to connect to a remote host or agent");
         return NULL;
 
     case CURLE_HTTP_RETURNED_ERROR:
-        pam_syslog(pamh, LOG_ERR, "请求url:%s 错误:%s", url, "http返回错误");
+        pam_syslog(pamh, LOG_ERR, "url: %s,error: :%s", url, "HTTP return error");
         return NULL;
 
     case CURLE_READ_ERROR:
-        pam_syslog(pamh, LOG_ERR, "请求url:%s 错误:%s", url, "发送读错误");
+        pam_syslog(pamh, LOG_ERR, "url: %s,error: :%s", url, "read error");
         return NULL;
 
     case CURLE_WRITE_ERROR:
-        pam_syslog(pamh, LOG_ERR, "请求url:%s 错误:%s", url, "发送写错误");
+        pam_syslog(pamh, LOG_ERR, "url: %s,error: :%s", url, "write error");
         return NULL;
 
     default:
-        pam_syslog(pamh, LOG_ERR, "请求url:%s 错误返回值:%d", url, res);
-        pam_syslog(pamh, LOG_ERR, "具体错误:%s", errbuf);
+        pam_syslog(pamh, LOG_ERR, "url: %s,return: %d", url, res);
+        pam_syslog(pamh, LOG_ERR, "error::%s", errbuf);
     }
     free(errbuf);
 
@@ -158,8 +156,6 @@ extern char *wait_auth_wxwork_qrcode(pam_handle_t *pamh, char *key, char *login_
 
     while (c < 60)
     {
-        char *errbuf = (char *)malloc(10200);
-
         CURL *curl;
         CURLcode res;
         FILE *curl_tmp_file = fopen("/tmp/pam_wxwork", "rw+");
@@ -168,10 +164,10 @@ extern char *wait_auth_wxwork_qrcode(pam_handle_t *pamh, char *key, char *login_
         curl = curl_easy_init();
         if (!curl)
         {
-            fprintf(stderr, "curl init failed\n");
+            pam_syslog(pamh,LOG_ERR,"curl init failed");
             return NULL;
         }
-
+        char *errbuf = (char *)malloc(10200);
         curl_easy_setopt(curl, CURLOPT_URL, url);          // url地址
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1); //不检查ssl，可访问https
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 1); //不检查ssl，可访问https
@@ -193,28 +189,28 @@ extern char *wait_auth_wxwork_qrcode(pam_handle_t *pamh, char *key, char *login_
         case CURLE_OK:
             break;
         case CURLE_UNSUPPORTED_PROTOCOL:
-            pam_syslog(pamh, LOG_ERR, "请求url:%s 错误:%s", url, "不支持的协议,由URL的头部指定");
+            pam_syslog(pamh, LOG_ERR, "url: %s,error: :%s", url, "An unsupported protocol specified by the header of the URL");
             return NULL;
 
         case CURLE_COULDNT_CONNECT:
-            pam_syslog(pamh, LOG_ERR, "请求url:%s 错误:%s", url, "不能连接到远程主机或者代理");
+            pam_syslog(pamh, LOG_ERR, "url: %s,error: :%s", url, "Unable to connect to a remote host or agent");
             return NULL;
 
         case CURLE_HTTP_RETURNED_ERROR:
-            pam_syslog(pamh, LOG_ERR, "请求url:%s 错误:%s", url, "http返回错误");
+            pam_syslog(pamh, LOG_ERR, "url: %s,error: :%s", url, "HTTP return error");
             return NULL;
 
         case CURLE_READ_ERROR:
-            pam_syslog(pamh, LOG_ERR, "请求url:%s 错误:%s", url, "发送读错误");
+            pam_syslog(pamh, LOG_ERR, "url: %s,error: :%s", url, "read error");
             return NULL;
 
         case CURLE_WRITE_ERROR:
-            pam_syslog(pamh, LOG_ERR, "请求url:%s 错误:%s", url, "发送写错误");
+            pam_syslog(pamh, LOG_ERR, "url: %s,error: :%s", url, "write error");
             return NULL;
 
         default:
-            pam_syslog(pamh, LOG_ERR, "请求url:%s 错误返回值:%d", url, res);
-            pam_syslog(pamh, LOG_ERR, "具体错误:%s", errbuf);
+            pam_syslog(pamh, LOG_ERR, "url: %s,return: %d", url, res);
+            pam_syslog(pamh, LOG_ERR, "error::%s", errbuf);
             free(errbuf);
             return NULL;
         }
@@ -242,7 +238,7 @@ extern char *wait_auth_wxwork_qrcode(pam_handle_t *pamh, char *key, char *login_
         // }
         else if (strstr(body,"QRCODE_SCAN_ERR") != NULL)
         {
-            pam_info(pamh,"request error!\n");
+            pam_info(pamh,"request error! url:%s",url);
         }
 
         // 释放
@@ -284,15 +280,15 @@ int req_auth_server(pam_handle_t *pamh, char *url)
     CURLcode res;
     FILE *curl_tmp_file = fopen("/tmp/pam_wxwork", "rw+");
     struct curl_slist *http_header = NULL;
-    char *errbuf = (char *)malloc(10200);
 
     curl = curl_easy_init();
     if (!curl)
     {
-        fprintf(stderr, "curl init failed\n");
+        pam_syslog(pamh,LOG_ERR,"curl init failed");
         return -1;
     }
 
+    char *errbuf = (char *)malloc(10200);
     curl_easy_setopt(curl, CURLOPT_URL, url);          // url地址
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1); //不检查ssl，可访问https
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 1); //不检查ssl，可访问https
@@ -314,28 +310,28 @@ int req_auth_server(pam_handle_t *pamh, char *url)
     case CURLE_OK:
         break;
     case CURLE_UNSUPPORTED_PROTOCOL:
-        pam_syslog(pamh, LOG_ERR, "请求url:%s 错误:%s", url, "不支持的协议,由URL的头部指定");
+        pam_syslog(pamh, LOG_ERR, "url: %s,error: :%s", url, "An unsupported protocol specified by the header of the URL");
         return -1;
 
     case CURLE_COULDNT_CONNECT:
-        pam_syslog(pamh, LOG_ERR, "请求url:%s 错误:%s", url, "不能连接到远程主机或者代理");
+        pam_syslog(pamh, LOG_ERR, "url: %s,error: :%s", url, "Unable to connect to a remote host or agent");
         return -1;
 
     case CURLE_HTTP_RETURNED_ERROR:
-        pam_syslog(pamh, LOG_ERR, "请求url:%s 错误:%s", url, "http返回错误");
+        pam_syslog(pamh, LOG_ERR, "url: %s,error: :%s", url, "HTTP return error");
         return -1;
 
     case CURLE_READ_ERROR:
-        pam_syslog(pamh, LOG_ERR, "请求url:%s 错误:%s", url, "发送读错误");
+        pam_syslog(pamh, LOG_ERR, "url: %s,error: :%s", url, "read error");
         return -1;
 
     case CURLE_WRITE_ERROR:
-        pam_syslog(pamh, LOG_ERR, "请求url:%s 错误:%s", url, "发送写错误");
+        pam_syslog(pamh, LOG_ERR, "url: %s,error: :%s", url, "write error");
         return -1;
 
     default:
-        pam_syslog(pamh, LOG_ERR, "请求url:%s 错误返回值:%d", url, res);
-        pam_syslog(pamh, LOG_ERR, "具体错误:%s", errbuf);
+        pam_syslog(pamh, LOG_ERR, "url: %s,return: %d", url, res);
+        pam_syslog(pamh, LOG_ERR, "error::%s", errbuf);
         free(errbuf);
         return -1;
     }

@@ -1,4 +1,4 @@
-# PAM-WXWork v0.2
+# PAM-WXWork v0.3
 
 一种用于Linux验证登录的pam模块，通过企业微信的二维码验证登录。
 
@@ -42,19 +42,28 @@ cp pam_wxwork.conf.save /usr/local/pam_wxork/pam_wxwork.conf
 
 编辑/etc/pam.d/login，添加如下内容
 
+> target支持的有效值：watch_qr（查看二维码）、scan_ar（扫描和验证二维码）、adragon（查看、扫描并验证二维码）
+
 ```
-account    required     pam_wxwork.so file=/usr/local/pam_wxork/pam_wxwork.conf
+account    required     pam_wxwork.so file=/usr/local/pam_wxork/pam_wxwork.conf target=adragon
 ```
 
 
 
 ## 使用说明
 
-1. 目前仅支持从控制台来（/etc/pam.d/login）扫描登录，暂不支持从ssh/sftp（/etc/pam.d/sshd）验证
+1. 目前仅支持从控制台来（/etc/pam.d/login）和咱不支持从sshd（/etc/pam.d/sshd）通过命令行扫描二维码方式（除非利用web进行中转web）
 2. 一旦将pam_wxwork.so复制到模块目录，将实时生效
 3. 模块的日志参考于/var/log/secure
 4. 需要关闭SELINUX
 5. 验证服务器返回字符串success即可
+6. 提供的长链接转短链接的api地址如下，当前为短链接失效为永久有效。
+
+   ```
+   short_url_api="https://link.xunyang.site/pam?get="
+   ```
+
+   
 
 
 
@@ -94,7 +103,7 @@ https://open.work.weixin.qq.com/wwopen/sso/l/qrConnect?callback=jsonpCallback&ke
 
 
 直到手机扫描二维码后，上方地址将获取到json
-```json
+```
 jsonpCallback({"status":"QRCODE_SCAN_SUCC","auth_code":"-v70iodQUS3MqxP-dOejzob4PW3CGOuxW9yiSdsvmA8"})
 ```
 
@@ -108,4 +117,21 @@ jsonpCallback({"status":"QRCODE_SCAN_SUCC","auth_code":"-v70iodQUS3MqxP-dOejzob4
 # appid: 企业微信的应用ID
 http://xxx.simple.com:16823/wxauth?code=_RCW8EiyhEBK7OyXismdLbRBJp-Stsrmzn6HCHFLOV8&state=666&appid=abcd
 ```
+
+
+
+## 更新说明
+
+2022-08-24 v0.3
+
+> 1. 查看二维码和验证二维码步骤分开（想测试从sshd中验证，但失败）
+> 2. 支持更小的二维码
+
+2022-08-17 v0.2 
+
+> 1. 配置文件中的wxwork_auth_value支持变量
+
+2022-08-15 v0.1
+
+> 1. 企业微信二维码的验证的支持从**控制台**登录 
 

@@ -8,26 +8,44 @@
 
 #include "conf.h"
 
-void set_wxwork_config(struct wxwork_config *wc, char *key, char *value)
+void set_config(struct wxwork_config *wc, char *key, char *value)
 {
-    if (strstr(key,WXWORK_APPID)!=NULL){
-        strcpy(wc->appid = (char *)malloc(sizeof (char)*(strlen(value))),value);
-    }else if (strstr(key,WXWORK_AGENTID)!=NULL){
-        strcpy(wc->agentid = (char *)malloc(sizeof (char)*(strlen(value))),value);
-    }else if (strstr(key,WXWORK_REDIRECT_URI)!=NULL){
-        strcpy(wc->redirect_uri = (char *)malloc(sizeof (char)*(strlen(value))),value);
-    }else if (strstr(key,WXWORK_AUTH_VALUE)!=NULL){
-        strcpy(wc->auth_value = (char *)malloc(sizeof (char)*(strlen(value))),value);
-    }else if (strstr(key,WXWORK_LOGIN_URL)!=NULL){
-        strcpy(wc->login_url = (char *)malloc(sizeof (char)*(strlen(value))),value);
+    if (strstr(key, WXWORK_LOGIN_URL) != NULL)
+    {
+        strcpy(wc->login_url = (char *)malloc(sizeof(char) * (strlen(value))), value);
     }
+    else if (strstr(key, WXWORK_APPID) != NULL)
+    {
+        strcpy(wc->appid = (char *)malloc(sizeof(char) * (strlen(value))), value);
+    }
+    else if (strstr(key, WXWORK_AGENTID) != NULL)
+    {
+        strcpy(wc->agentid = (char *)malloc(sizeof(char) * (strlen(value))), value);
+    }
+    else if (strstr(key, WXWORK_REDIRECT_URI) != NULL)
+    {
+        strcpy(wc->redirect_uri = (char *)malloc(sizeof(char) * (strlen(value))), value);
+    }
+    else if (strstr(key, WXWORK_AUTH_VALUE) != NULL)
+    {
+        strcpy(wc->auth_value = (char *)malloc(sizeof(char) * (strlen(value))), value);
+    }
+    else if (strstr(key, SMALLER_QRCODE) != NULL)
+    {
+        strcpy(wc->smaller_qrcode = (char *)malloc(sizeof(char) * (strlen(value))), value);
+    }
+    else if (strstr(key, SHORT_URL_API) != NULL)
+    {
+        strcpy(wc->short_url_api = (char *)malloc(sizeof(char) * (strlen(value))), value);
+    }
+
 }
-int get_wxwork_config(pam_handle_t *pamh, struct wxwork_config *wc, const char *file)
+int get_config(pam_handle_t *pamh, struct wxwork_config *wc, const char *file)
 {
     FILE *f = fopen(file, "r");
     if (f == NULL)
     {
-        pam_syslog(pamh, LOG_ERR, "failed to open %s", file);
+        pam_syslog(pamh, LOG_ERR, "Invalid file pointer");
         return -1;
     }
     char line[1024];
@@ -97,10 +115,10 @@ int get_wxwork_config(pam_handle_t *pamh, struct wxwork_config *wc, const char *
                 }
             }
         }
-        set_wxwork_config(wc,key,value);
+        set_config(wc, key, value);
     }
 
-    if (wc->login_url==NULL)
+    if (wc->login_url == NULL)
         strcpy(wc->login_url = (char *)malloc(sizeof(char) * (strlen(WXWORK_URL))), WXWORK_URL);
     free(key);
     free(value);
